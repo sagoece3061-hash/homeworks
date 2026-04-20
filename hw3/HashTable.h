@@ -35,24 +35,18 @@ struct DocNode {
 template <typename K, typename V>
 class HashTable{
 public:
-    // Constructor & Destructor
-    HashTable(int capacity = 101); // Başlangıç kapasitesi (Genelde asal sayı tercih edilir)
+    HashTable(int capacity = 101); 
     ~HashTable();
 
-    // Temel Metotlar
     void insert(const K& key, const V& value);
-    bool get(const K& key, V& value);        // Değeri referansla döndürür, varsa true döner
-    bool contains(const K& key);            // Anahtar var mı kontrolü
-    bool remove(const K& key);              // (Opsiyonel) Eleman silme
+    bool get(const K& key, V& value); 
+    bool contains(const K& key); 
+    bool remove(const K& key);
     
-    // Soru 4 ve Genel Kullanım İçin: Değeri doğrudan pointer olarak al (içeriği değiştirmek için)
     V* find(const K& key);
+    int size() const; 
 
-    // Soru 3 İçin: Dictionary kod yönetimini kolaylaştıran yardımcı
-    int size() const;                       // Tablodaki eleman sayısı
-
-    // Tablo Yönetimi
-    void rehash();                          // Load factor aşılınca tabloyu büyütür
+    void rehash();
     double getLoadFactor() const;
 
 private:
