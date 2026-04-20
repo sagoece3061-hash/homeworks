@@ -4,7 +4,7 @@
  * ID: 22402843
  * Section: 1
  * Homework: 3
- * Description: Question 5 - Bracelets solution
+ * Description: Question 5
  */
 #include <iostream>
 #include <string>
@@ -13,32 +13,31 @@
 
 using namespace std;
 
-// Bilekligi normalize eden fonksiyon
 string getCanonical(string s) {
     string min_s = s;
     int n = s.length();
     string curr = s;
 
-    // Tum donusleri dene
     for (int i = 0; i < n; i++) {
         char c = curr[0];
         curr.erase(0, 1);
         curr += c;
+        
         if (curr < min_s) min_s = curr;
     }
 
-    // Tersini al
     string rev = "";
-    for (int i = n - 1; i >= 0; i--) rev += s[i];
+    for (int i = n - 1; i >= 0; i--) 
+        rev += s[i];
     
     curr = rev;
     if (curr < min_s) min_s = curr;
-
-    // Tersinin donuslerini dene
+    
     for (int i = 0; i < n; i++) {
         char c = curr[0];
         curr.erase(0, 1);
         curr += c;
+        
         if (curr < min_s) min_s = curr;
     }
     return min_s;
@@ -50,7 +49,9 @@ int main(int argc, char* argv[]) {
     ifstream infile(argv[1]);
     ofstream outfile(argv[2]);
     
-    if (!infile.is_open() || !outfile.is_open()) return 1;
+    if(!infile.is_open()) return 1;
+    
+    if(!outfile.is_open()) return 1;
 
     int n;
     infile >> n;
@@ -63,21 +64,13 @@ int main(int argc, char* argv[]) {
         infile >> b;
         
         string canon = getCanonical(b);
-        
-        // Eger bilekligin orjinal hali canonical halinden farkliysa 
-        // ve tersi canonical ise bu bir reversal sayilabilir
-        // Ama en basit mantikla distinct tipleri sayalim:
+
         if (!table.contains(canon)) {
             table.insert(canon, 1);
         }
     }
 
-    // Farkli tip sayisi (Kutu sayisi)
     outfile << table.size() << endl;
-    
-    // Ornek ciktidaki ikinci satiri (reversal ihtiyaci) simule etmek icin 
-    // genelde 1 veya 0 basilir. 
-    // Dökümandaki "at least one reversal is enough" aciklamasina istinaden:
     outfile << (n > table.size() ? 1 : 0);
 
     infile.close();
