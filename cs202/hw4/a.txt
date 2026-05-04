@@ -1,0 +1,348 @@
+#include <iostream>
+#include "MyList.h"
+
+typedef unsigned long long ull;
+
+struct dub{
+    int nbhd[4] = {-1, -1, -1, -1}; // South, North, West, East
+    int number_of_nhbrs = 0;
+};
+
+int factorial[9] = {1, 1, 2, 6, 24, 120, 720, 5040, 40320};
+const char move_chars[4] = {'D', 'U', 'L', 'R'};
+
+int get_manhattan_dist(ull start, ull end){
+
+}
+
+ull convert_to_ull(){
+    ull num = 0;
+    ull input;
+
+    for (int i = 0; i < 16; i++){
+        cin >> input;
+        num |= (input << ((15 - i) * 4));
+    }
+    return num;
+}
+
+int get_tile_at(ull state, int index) {
+    return (state >> ((15 - index) * 4)) & 0xF;
+}
+
+void calc_goal_pos(int goal[16], ull goal_state){
+    
+}
+
+int cantor_arr_to_idx(const int arr[9]){
+    int num = 0;
+
+    for(int i = 0; i < 9; i++){
+        int count = 0;
+        
+        for(int j = i + 1; j < 9; j++)
+            if(arr[i] > arr[j]) count++;
+
+        num = num + factorial[8 - i] * count;
+    }
+
+    return num;
+}
+
+void cantor_idx_to_arr(int arr[9], int idx){
+    int numbers[] = {0, 1, 2, 3, 4, 5, 6, 7, 8}; 
+    int numbers_size = 9;
+    int arr_idx = 0;
+
+    for(int i = 8; i >= 0; i--){
+        int factorial_i = factorial[i];
+        int quotient = idx / factorial_i;
+        int remainder = idx % factorial_i;
+
+        arr[arr_idx++] = numbers[quotient];
+
+        for(int j = quotient; j < numbers_size - 1; j++){
+            numbers[j] = numbers[j + 1];
+        }
+        numbers_size--;
+        idx = remainder;
+    }
+}
+
+void init_nbhd(dub* node, int idx){
+    int arr[9];
+    cantor_idx_to_arr(arr, idx);
+
+    int idx_of_zero = 0;
+
+    for(int i = 0; i < 9; i++){
+        if(arr[i] == 0){
+            idx_of_zero = i;
+            break;
+        }
+    }
+
+    int north_of_zero = (idx_of_zero / 3 == 0) ? -1 : (idx_of_zero - 3);
+    int south_of_zero = (idx_of_zero / 3 == 2) ? -1 : (idx_of_zero + 3);
+    int west_of_zero = (idx_of_zero % 3 == 0) ? -1 : (idx_of_zero - 1);
+    int east_of_zero = (idx_of_zero % 3 == 2) ? -1 : (idx_of_zero + 1);
+
+    if(south_of_zero != -1){
+        arr[idx_of_zero] = arr[south_of_zero];
+        arr[south_of_zero] = 0;
+
+        node->nbhd[0] = cantor_arr_to_idx(arr);
+
+        arr[south_of_zero] = arr[idx_of_zero];
+        arr[idx_of_zero] = 0;
+        node->number_of_nhbrs++;
+    }
+    else    
+        node->nbhd[0] = -1;
+
+    if(north_of_zero != -1){
+        arr[idx_of_zero] = arr[north_of_zero];
+        arr[north_of_zero] = 0;
+
+        node->nbhd[1] = cantor_arr_to_idx(arr);
+
+        arr[north_of_zero] = arr[idx_of_zero];
+        arr[idx_of_zero] = 0;
+        node->number_of_nhbrs++;
+    }
+    else    
+        node->nbhd[1] = -1;
+
+    if(west_of_zero != -1){
+        arr[idx_of_zero] = arr[west_of_zero];
+        arr[west_of_zero] = 0;
+
+        node->nbhd[2] = cantor_arr_to_idx(arr);
+
+        arr[west_of_zero] = arr[idx_of_zero];
+        arr[idx_of_zero] = 0;
+        node->number_of_nhbrs++;
+    }
+    else    
+        node->nbhd[2] = -1;
+
+    if(east_of_zero != -1){
+        arr[idx_of_zero] = arr[east_of_zero];
+        arr[east_of_zero] = 0;
+
+        node->nbhd[3] = cantor_arr_to_idx(arr);
+
+        arr[east_of_zero] = arr[idx_of_zero];
+        arr[idx_of_zero] = 0;
+        node->number_of_nhbrs++;
+    }
+    else    
+        node->nbhd[3] = -1;
+}
+
+void bfs_3(dub* graph, int initial_idx, int final_idx){
+    if (initial_idx == final_idx) {
+        std::cout << 0 << "\n\n";
+        return;
+    }
+
+    int* queue = new int[362880];
+    int queue_head = 0;
+    int queue_tail = 0;
+
+    int* visited_arr = new int[362880](); 
+
+    visited_arr[initial_idx] = 1;   
+    queue[queue_tail++] = initial_idx;
+
+    bool reached = false;
+
+    while (queue_head < queue_tail) {
+        int w = queue[queue_head++];
+
+        for (int i = 0; i < 4; i++) {
+            int neighbor = graph[w].nbhd[i];
+
+            if(neighbor != -1 && visited_arr[neighbor] == 0){
+                visited_arr[neighbor] = visited_arr[w] + 1;
+                
+                if(neighbor == final_idx) {
+                    reached = true;
+                    break; 
+                }
+                
+                queue[queue_tail++] = neighbor; 
+            }
+        }
+        if (reached) break;
+    }
+
+    if (reached) {
+        std::cout << visited_arr[final_idx] - 1 << "\n";
+        
+        char path[100];
+        int path_len = 0;
+        int curr = final_idx;
+
+        while (curr != initial_idx) {
+            for (int i = 0; i < 4; i++) {
+                int prev = graph[curr].nbhd[i];
+
+                if (prev != -1 && visited_arr[prev] == visited_arr[curr] - 1) {
+                    for (int j = 0; j < 4; j++) {
+                        if (graph[prev].nbhd[j] == curr) {
+                            path[path_len++] = move_chars[j];
+                            break;
+                        }
+                    }
+                    curr = prev;
+                    break;
+                }
+            }
+        }
+
+        for (int i = path_len - 1; i >= 0; i--) {
+            std::cout << path[i];
+        }
+        std::cout << "\n";
+
+    } else {
+        std::cout << "UNREACHABLE\n";
+    }
+
+    delete[] queue;
+    delete[] visited_arr;
+}
+
+void bfs_4(dub* graph, int initial_idx, int final_idx){
+    if (initial_idx == final_idx) {
+        std::cout << 0 << "\n\n";
+        return;
+    }
+
+    int* queue = new int[362880];
+    int queue_head = 0;
+    int queue_tail = 0;
+
+    int* visited_arr = new int[362880](); 
+
+    visited_arr[initial_idx] = 1;   
+    queue[queue_tail++] = initial_idx;
+
+    bool reached = false;
+
+    while (queue_head < queue_tail) {
+        int w = queue[queue_head++];
+
+        for (int i = 0; i < 4; i++) {
+            int neighbor = graph[w].nbhd[i];
+
+            if(neighbor != -1 && visited_arr[neighbor] == 0){
+                visited_arr[neighbor] = visited_arr[w] + 1;
+                
+                if(neighbor == final_idx) {
+                    reached = true;
+                    break; 
+                }
+                
+                queue[queue_tail++] = neighbor; 
+            }
+        }
+        if (reached) break;
+    }
+
+    if (reached) {
+        std::cout << visited_arr[final_idx] - 1 << "\n";
+        
+        char path[100];
+        int path_len = 0;
+        int curr = final_idx;
+
+        while (curr != initial_idx) {
+            for (int i = 0; i < 4; i++) {
+                int prev = graph[curr].nbhd[i];
+
+                if (prev != -1 && visited_arr[prev] == visited_arr[curr] - 1) {
+                    for (int j = 0; j < 4; j++) {
+                        if (graph[prev].nbhd[j] == curr) {
+                            path[path_len++] = move_chars[j];
+                            break;
+                        }
+                    }
+                    curr = prev;
+                    break;
+                }
+            }
+        }
+
+        for (int i = path_len - 1; i >= 0; i--) {
+            std::cout << path[i];
+        }
+        std::cout << "\n";
+
+    } else {
+        std::cout << "UNREACHABLE\n";
+    }
+
+    delete[] queue;
+    delete[] visited_arr;
+}
+
+int main(int argc, char const *argv[]){
+    int dim;
+
+    cin >> dim;
+
+    if(dim == 3){
+        dub* graph = new dub[362880];
+    
+        for(int i = 0; i < 362880; i++){
+            init_nbhd(graph + i, i);
+        }
+    
+        // // --- 3(a) TEST KODU BAŞLANGICI ---
+        // int total_nodes = 362880;
+        // long long total_edges = 0;
+        // bool is_degree_valid = true;
+    
+        // for(int i = 0; i < total_nodes; i++){
+        //     int degree = graph[i].number_of_nhbrs;
+        //     total_edges += degree; // Her düğümün komşu sayısını topluyoruz
+            
+        //     // Derecenin 2 ile 4 arasında olup olmadığını kontrol ediyoruz[cite: 10]
+        //     if(degree < 2 || degree > 4){
+        //         is_degree_valid = false;
+        //     }
+        // }
+    
+        // // Çift yönlü (undirected) bir graf olduğu için her kenar iki kere sayılır, bu yüzden 2'ye bölüyoruz.
+        // total_edges /= 2; 
+    
+        // std::cout << "Total Nodes: " << total_nodes << "\n";
+        // std::cout << "Total Edges: " << total_edges << "\n";
+        // std::cout << "All nodes have degree between 2 and 4: " << (is_degree_valid ? "True" : "False") << "\n";
+        // // --- 3(a) TEST KODU BİTİŞİ ---
+
+        int start_arr[9];
+        int finish_arr[9];
+
+        for (int i = 0; i < 9; i++){
+            cin >> start_arr[i];
+        }
+
+        for (int i = 0; i < 9; i++){
+            cin >> finish_arr[i];
+        }
+
+        int start_idx = cantor_arr_to_idx(start_arr);
+        int finish_idx = cantor_arr_to_idx(finish_arr);
+        
+        bfs_3(graph, start_idx, finish_idx);
+    
+        delete[] graph;
+    }
+
+    else if(dim == 4){}
+
+    return 0;
+}

@@ -1,0 +1,3 @@
+in Document d.txt, a found -2090844352 times, the found 31093 times, to found -2090844352 times, as found 31093 times.
+in Document e.txt, a found 1911234171 times, the found 5 times, to found 0 times, as found 0 times.
+in Document f.txt, a found 1911234171 times, the found 5 times, to found 0 times, as found 0 times.
